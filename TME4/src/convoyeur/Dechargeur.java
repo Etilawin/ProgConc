@@ -3,18 +3,23 @@ package convoyeur;
 public class Dechargeur implements Runnable {
 
     private Chariot chariot;
-   // private AleaStock stock;
 
-    public Dechargeur(Chariot chariot, AleaStock stock) {
+    /**
+     * Créer un nouveau déchargeur pour le chariot
+     *
+     * @param chariot Chariot - Le chariot à décharger
+     */
+    public Dechargeur(Chariot chariot) {
         this.chariot = chariot;
-        this.stock = stock;
     }
 
     @Override
     public void run() {
-        while(!this.stock.isEmpty() || this.chariot.isFull()) {
-            if(chariot.isFull()) {
+        while(!chariot.isStockVide() || this.chariot.getNbObjetTotal() != 0) {
+            try {
                 chariot.decharger();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }

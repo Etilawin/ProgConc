@@ -2,25 +2,29 @@ package convoyeur;
 
 import java.util.Random;
 
-public class AleaObjet implements Comparable{
+public class AleaObjet {
 
-    private Random rand = new Random();
-    private int weight;
+    private int poids;
 
-    public AleaObjet(int min, int max) {
-        this.weight = min + rand.nextInt(max-min);
+    /**
+     * Créer un nouvel objet avec un poids aléatoire compris entre les arguments
+     *
+     * @param poidsMin int - Poids minimum de l'objet
+     * @param poidsMax int - Poids maximum de l'objet
+     */
+    public AleaObjet(int poidsMin, int poidsMax) {
+        // Initialisation de l'objet avec un poids aléatoire
+        Random rand = new Random();
+        this.poids = poidsMin + rand.nextInt(poidsMax-poidsMin);
     }
 
-    public int getWeight() {
-        return weight;
+    /**
+     * Récupération du poids de l'objet
+     *
+     * @return int - Le poids de l'objet
+     */
+    public int getPoids() {
+        return poids;
     }
 
-    @Override
-    public int compareTo(Object o) {
-        if(o instanceof AleaObjet) {
-            AleaObjet obj = (AleaObjet) o;
-            return this.getWeight() - obj.getWeight();
-        }
-        return -1;
-    }
 }
