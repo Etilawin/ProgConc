@@ -21,9 +21,6 @@ public class MainTest{
       th[i].run();
       System.out.println(groupes[i]);
     }
-    for (int i = 0; i < 3; i++) {
-      s.annuler(groupes[i]);
-    }
     try {
       for (int i = 0;i < 10; i++) {
         th[i].join();

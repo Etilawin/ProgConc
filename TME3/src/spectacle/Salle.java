@@ -33,8 +33,7 @@ public class Salle{
     return -1;
   }
 
-  private boolean reserverContigues(Groupe g) {
-    int n = g.getNumberOfPlace();
+  private boolean reserverContigues(int n, Groupe g) {
     int placement = -1;
     int rang = 0;
     for(; rang < this.places.length && placement == -1; rang++) {
@@ -51,20 +50,9 @@ public class Salle{
     return false;
   }
 
-  public synchronized void annuler(Groupe g) {
-      int i;
-      int j;
-      for(Place p: g.getPlacesReservees()) {
-         i = p.getI();
-         j = p.getJ();
-         this.places[i][j] = false;
-      }
-  }
-
-  public synchronized boolean reserver(Groupe g) {
-    int n = g.getNumberOfPlace();
+  public synchronized boolean reserver(int n, Groupe g) {
     if (!this.capaciteOk(n)) return false;
-    if (reserverContigues(g)) return true;
+    if (reserverContigues(n, g)) return true;
 
     for(int i = 0; i < this.places.length && n != 0; i++){
       for (int j = 0; j < this.places[0].length && n != 0; j++) {

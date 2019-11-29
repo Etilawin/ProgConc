@@ -1,36 +1,28 @@
 package convoyeur;
 
 public class Chargeur implements Runnable {
+    Chariot chariot;
+    AleaStock stock;
 
-    private Chariot chariot;
-    private AleaStock stock;
-    private int id;
+    private static int id = 0;
+    private int myid;
 
-    /**
-     * Initialise unn nouveau chargeur qui fait le lien entre un stock et un chariot
-     *
-     * @param chariot Chariot - Le chariot à charger
-     * @param stock AleaStock - Le stock dans lequel prendre les objets
-     * @param id int - L'identifiant du chargeur pour l'affichage
-     */
-    public Chargeur(Chariot chariot, AleaStock stock, int id) {
+    public Chargeur(Chariot chariot, AleaStock stock) {
         this.chariot = chariot;
         this.stock = stock;
-        this.id = id;
+        synchronized (this) {
+            this.myid = Chargeur.id++;
+        }
     }
 
     @Override
     public void run() {
-
-        // Boucle de chargement du chariot, tant que le stock n'est pas vide
-        while(!this.stock.isVide()) {
-            AleaObjet objet = this.stock.prendreElement();
-            if(objet != null) {
-                try {
-                    this.chariot.charger(objet, this.id);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        while(!this.stock.isEmpty()) {
+            AleaObjet obj = this.stock.prendreElement();
+            try {
+                this.chariot.charger(obj, this.myid);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }

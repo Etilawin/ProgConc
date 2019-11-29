@@ -10,7 +10,7 @@ public class SegTournant implements Runnable {
     private Condition estAppele;
     private Condition estDisponible;
     private Condition estEnDeplacement;
-    private Condition estRentre;
+    private Condition estRentrant;
     private Condition estVide;
     private int posAppel;
     private boolean dispo;
@@ -24,35 +24,22 @@ public class SegTournant implements Runnable {
         this.estAppele = this.lock.newCondition();
         this.estDisponible = this.lock.newCondition();
         this.estEnDeplacement = this.lock.newCondition();
-        this.estRentre = this.lock.newCondition();
+        this.estRentrant = this.lock.newCondition();
         this.estVide = this.lock.newCondition();
         this.posAppel = -1;
         this.pool = pool;
-        this.dispo = true;
+        this.dispo = false;
         this.entre = false;
         this.loco = null;
         this.deplacement = false;
     }
 
-    void appeler(int pos) throws InterruptedException{
-        this.lock.lock();
-        try {
-            while(!this.dispo)
-                this.estDisponible.await();
-            this.dispo = false;
-            this.posAppel = pos;
-            this.estAppele.signalAll();
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
     private void attendreAppel() throws InterruptedException {
         this.lock.lock();
         try {
-            while(this.posAppel == -1)
+            while(this.posAppel == -1) {
                 this.estAppele.await();
-            this.deplacement = true;
+            }
         } finally {
             this.lock.unlock();
         }
@@ -62,24 +49,52 @@ public class SegTournant implements Runnable {
         this.lock.lock();
         try {
             Thread.sleep(this.posAppel * 100);
-            this.deplacement = false; // Fini de se déplacer, on signalAll
             this.estEnDeplacement.signalAll();
         } finally {
             this.lock.unlock();
         }
     }
 
-    void attendrePositionOK() throws InterruptedException {
+    public void appeler(int id) throws InterruptedException{
         this.lock.lock();
         try {
-            while (this.deplacement) // Dès qu'on est plus en déplacement on passe à l'action suivante
-                this.estEnDeplacement.await();
+            while(!this.dispo) {
+                this.estDisponible.await();
+            }
+            this.posAppel = id;
+            this.estAppele.signalAll();
         } finally {
             this.lock.unlock();
         }
     }
 
-    void sortir(Loco loco) {
+    public void attendrePositionOK() throws InterruptedException {
+        while(this.deplacement)
+            this.estEnDeplacement.await();
+    }
+
+    public void entrer(Loco loco) {
+        this.lock.lock();
+        try {
+            this.loco = loco;
+            this.entre = false;
+            this.estRentrant.signalAll();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    private void attendreEntree() throws InterruptedException{
+        this.lock.lock();
+        try {
+            while(this.entre)
+                this.estRentrant.await();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public void sortir(Loco loco) {
         this.lock.lock();
         try {
             this.loco = null;
@@ -94,36 +109,6 @@ public class SegTournant implements Runnable {
         try {
             while(this.loco != null)
                 this.estVide.await();
-            this.posAppel = -1;
-            this.dispo = true;
-            this.entre = false;
-            this.estDisponible.signalAll();
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    void entrer(Loco loco) {
-        this.lock.lock();
-        try {
-            this.loco = loco;
-            this.posAppel = pool.getFreeHangar();
-            this.entre = true; // C'est bon le train est entré on peut continuer
-            this.estRentre.signalAll();
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    synchronized int getPosition() {
-        return posAppel;
-    }
-
-    private void attendreEntree() throws InterruptedException{
-        this.lock.lock();
-        try {
-            while(!this.entre)
-                this.estRentre.await();
         } finally {
             this.lock.unlock();
         }

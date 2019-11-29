@@ -1,7 +1,6 @@
 package spectacle;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Groupe implements Runnable{
   private int n;
@@ -22,23 +21,10 @@ public class Groupe implements Runnable{
   }
 
   public void run(){
-    this.s.reserver(this);
-    Random r = new Random();
-    if(r.nextInt(2) > 0) {
-        this.s.annuler(this);
-        System.out.println("Le groupe " + this.id + " à annulé.");
-    }
+    s.reserver(this.n);
   }
 
-  public void addPlace(Place p){
+  public addPlace(Place p){
     this.placesReservees.add(p);
-  }
-
-  public int getNumberOfPlace() {
-      return this.n;
-  }
-
-  public ArrayList<Place> getPlacesReservees() {
-      return this.placesReservees;
   }
 }
