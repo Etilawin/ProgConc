@@ -1,25 +1,37 @@
 public class Client implements Runnable {
 
-    private int nbRequete;
-    private Serveur serv;
+    // ----- Attributes -----
+
+    private boolean haveToWait;
+    private Server server;
     private int id;
-    private static int idcpt = 0;
-    private boolean requestReceived;
+    private static int idCpt = 0;
 
-    public Client(Serveur serv) {
-        this.serv = serv;
-        this.id = idcpt++;
-        this.requestReceived = true;
+    // ----- Constructors -----
+
+    public Client(Server server) {
+        this.haveToWait = false;
+        this.server = server;
+        this.id = ++ Client.idCpt;
     }
 
-    public synchronized void requeteServie(ReponseRequete r) {
-        this.requestReceived = true;
-        notifyAll();
+    // ----- Getter -----
+
+    public int getId() {
+        return this.id;
     }
 
-    public synchronized void attendreReponse() throws InterruptedException{
-        while(!this.requestReceived) {
-            wait();
+    // ----- Methods -----
+
+    public synchronized void sendResponse(ResponseRequest responseRequest) {
+        System.out.println("Le client " + this.id + " a reçu la réponse " + responseRequest.getContent());
+        this.haveToWait = false;
+        this.notifyAll();
+    }
+
+    private synchronized void waitResponse() throws InterruptedException {
+        while (this.haveToWait) {
+            this.wait();
         }
     }
 
@@ -37,20 +49,22 @@ public class Client implements Runnable {
             for (int i = 0; i < 5; i++) {
 
                 if(this.id % 3 == 0) {
-                    System.out.println(this.id + " soumet une requete de type " + 2);
-                    serv.soumettreRequete(2, this);
+                    System.out.println("Le client " + this.id + " a envoyé une requête IMPOSSIBLE");
+                    this.server.sendRequest(new Request(this, 1, "IMPOSSIBLE"));
                 } else {
-                    System.out.println(this.id + " soumet une requete de type " + 1);
-                    serv.soumettreRequete(1, this);
+                    System.out.println("Le client " + this.id + " a envoyé une requête SIMPLE");
+                    this.server.sendRequest(new Request(this, 0, "SIMPLE"));
                 }
 
-                this.requestReceived = false;
-                System.out.println(this.id + " attend la rep");
-                attendreReponse();
+                this.haveToWait = true;
+                this.waitResponse();
 
             }
 
-            System.out.println("Fin du client " + this.id);
+            if(this.id == MainTest.NB_CLIENTS) {
+                System.out.println("Le client " + this.id + " a envoyé une requête STOP");
+                this.server.sendRequest(new Request(this, -1, "STOP"));
+            }
 
         } catch (InterruptedException e) {
 
@@ -58,5 +72,4 @@ public class Client implements Runnable {
 
         }
     }
-
 }

@@ -1,27 +1,28 @@
 public class MainTest {
+
+    public final static int NB_CLIENTS = 10;
+
     public static void main(String[] args) {
 
-        final int NB_CLIENTS = 10;
-
-        Serveur s = new Serveur();
-        Thread serv = new Thread(s);
-        serv.start();
-
-        Thread[] clients = new Thread[NB_CLIENTS];
-        for (int i = 0; i < NB_CLIENTS; i++) {
-            clients[i] = new Thread(new Client(s));
-            clients[i].start();
-        }
+        Server server = new Server();
+        server.start();
+        Thread[] clients = new Thread[MainTest.NB_CLIENTS];
 
         try {
-            for (int i = 0; i < NB_CLIENTS; i++) {
+
+            for (int i = 0; i < MainTest.NB_CLIENTS; i++) {
+                clients[i] = new Thread(new Client(server));
+                clients[i].start();
+            }
+
+            for (int i = 0; i < MainTest.NB_CLIENTS; i++) {
                 clients[i].join();
             }
-        } catch (InterruptedException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        serv.interrupt();
     }
 
 }
