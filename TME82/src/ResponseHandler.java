@@ -42,7 +42,12 @@ public class ResponseHandler implements Runnable {
 
             try {
                 if(this.responses.size() > 0) {
-
+                    Future<ResponseRequest> future = this.responses.poll();
+                    if(future != null && future.isDone()) {
+                        this.server.sendResponse(future.get());
+                    } else {
+                        this.responses.add(future);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
