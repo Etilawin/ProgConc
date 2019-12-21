@@ -8,6 +8,7 @@ public class Restaurant {
     private int nextNumReservation;
 
     private Semaphore semaphoreTables;
+    private Semaphore mutex;
 
     // ----- Constructors -----
 
@@ -16,6 +17,7 @@ public class Restaurant {
         this.nextNumReservation = 1;
 
         this.semaphoreTables = new Semaphore(this.nbTables, true);
+        this.mutex = new Semaphore(1, true);
     }
 
     // ----- Getters -----
@@ -32,6 +34,7 @@ public class Restaurant {
         // Round the number of clients to know the number of wanted table
         int nbTableVoulu = (groupe.getNbClients() % 2 == 0 ? groupe.getNbClients() : groupe.getNbClients() + 1) / 2;
 
+        this.mutex.acquire();
         if(this.semaphoreTables.availablePermits() >= nbTableVoulu) {
 
             System.out.println("Le groupe " + groupe.getId() + " obtient une réservation pour " + nbTableVoulu + " tables !");
@@ -43,6 +46,7 @@ public class Restaurant {
             System.out.println("Le groupe " + groupe.getId() + " n'a pas put trouver de place pour " + nbTableVoulu + " tables...");
 
         }
+        this.mutex.release();
 
         return res;
     }
