@@ -4,7 +4,7 @@ public class TestRestaurant {
 
     public static void main(String[] args) {
 
-        int n = 0;
+        int n;
 
         try {
 
@@ -18,7 +18,7 @@ public class TestRestaurant {
         }
 
 
-        Restaurant chezJiji = new Restaurant(10);
+        Restaurant chezJiji = new Restaurant(n);
 
         int nb_groupes = (int) (Math.random() * 10) + 1;
 

@@ -10,11 +10,12 @@ public class GroupeClients {
 
     private static int cpt = 0;
     private final int id;
+    private int clients_arrives;
 
     private static final Object m = new Object();
 
 
-    public GroupeClients(int taille, Restaurant chezJiji) {
+    GroupeClients(int taille, Restaurant chezJiji) {
 
         synchronized (m) {
 
@@ -22,6 +23,7 @@ public class GroupeClients {
 
         }
 
+        this.clients_arrives = 0;
         this.reservation = null;
         this.taille = taille;
         this.clients = new Client[taille];
@@ -42,28 +44,46 @@ public class GroupeClients {
         return String.valueOf(this.id);
     }
 
-    public void propagateInterruptedStatus() {
+    void propagateInterruptedStatus() {
+
         for (Client client :
                 this.clients) {
+
             client.setInterruptedStatus();
+
         }
+
     }
 
-    public Collection<? extends Thread> getClients() {
+    Collection<? extends Thread> getClients() {
 
         return Arrays.asList(this.threads);
 
     }
 
-    public NumeroReservation getReservation() {
+    NumeroReservation getReservation() {
+
         return reservation;
+
     }
 
-    public void setReservation(NumeroReservation reservation) {
+    void setReservation(NumeroReservation reservation) {
+
         this.reservation = reservation;
+
     }
 
-    public int getTaille() {
+    int getTaille() {
+
         return taille;
+
     }
+
+    synchronized boolean nouveauClientArrive() {
+
+        this.clients_arrives++;
+        return this.clients_arrives == this.taille;
+
+    }
+
 }

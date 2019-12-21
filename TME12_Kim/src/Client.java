@@ -1,3 +1,6 @@
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class Client implements Runnable {
 
     private final Restaurant restaurant;
@@ -7,15 +10,13 @@ public class Client implements Runnable {
     private static int cpt = 0;
     private final int id;
 
-    private static final Object m = new Object();
+    private static Lock lock = new ReentrantLock();
 
-    public Client(Restaurant chezJiji, GroupeClients groupeClients) {
+    Client(Restaurant chezJiji, GroupeClients groupeClients) {
 
-        synchronized (m) {
-
-            this.id = cpt++;
-
-        }
+        lock.lock();
+        this.id = cpt++;
+        lock.unlock();
 
         this.restaurant = chezJiji;
         this.groupe = groupeClients;
@@ -26,32 +27,74 @@ public class Client implements Runnable {
     public void run() {
         //            Thread.sleep((long) (Math.random()*200));
 
-        System.out.printf("Un des clients(%d) du groupe %s arrive au resto.%n", this.id, this.groupe);
-        if ( !this.interruptedStatus ) {
+        boolean dernier;
+
+        try {
+
+            System.out.printf("Un des clients(%d) du groupe %s arrive au resto.%n", this.id, this.groupe);
 
             if (this.groupe.getReservation() == null) {
 
-                System.out.printf("Le client(%d) essaye de réserver pour son groupe %s%n", this.id, this.groupe);
-                NumeroReservation reservation = this.restaurant.reserver(this.groupe);
+                if (!this.interruptedStatus) {
 
-                if ( reservation == null ) {
-                    System.out.printf("Arf impossible de réserver pour le groupe %s par le client %d%n", this.groupe, this.id);
-                    this.groupe.propagateInterruptedStatus();
+                    System.out.printf("Le client(%d) essaye de réserver pour son groupe %s%n", this.id, this.groupe);
+                    NumeroReservation reservation = this.restaurant.reserver(this.groupe);
+
+                    if (reservation != null) {
+
+                        dernier = this.groupe.nouveauClientArrive();
+                        Thread.sleep((long) (Math.random() * 500));
+                        if (dernier) {
+
+                            System.out.printf("Dernier arrivé(%d) ! Aller hop go manger !(groupe = %s)(taille = %d)(reservation = %d)%n", this.id, this.groupe, this.groupe.getTaille(), reservation.getId());
+
+                        } else {
+
+                            System.out.printf("Yes le client(%d) à pu rentrer dans le restaurant, il attend les autres. (groupe = %s) !%n", this.id, this.groupe);
+
+                        }
+
+
+                    } else {
+
+                            System.out.printf("Dommage pour le client %d son groupe(%s) n'a pas eu de place %n", this.id, this.groupe);
+
+                    }
+
+
 
                 } else {
-                    this.groupe.setReservation(reservation);
-                    System.out.printf("Yes le client(%d) à pu réserver pour son groupe(%s) !%n", this.id, this.groupe);
+
+                    System.out.printf("Dommage pour le client %d son groupe(%s) n'a pas eu de place %n", this.id, this.groupe);
+
                 }
+
+            } else {
+
+                dernier = this.groupe.nouveauClientArrive();
+                Thread.sleep((long) (Math.random() * 500));
+
+                if (dernier) {
+
+                    System.out.printf("Dernier arrivé(%d) ! Aller hop go manger !(groupe = %s)(taille = %d)(reservation = %d)%n", this.id, this.groupe, this.groupe.getTaille(), this.groupe.getReservation().getId());
+
+                } else {
+
+                    System.out.printf("Yes le client(%d) à pu rentrer dans le restaurant, il attend les autres. (groupe = %s) !%n", this.id, this.groupe);
+
+                }
+
             }
 
-        } else {
-            System.out.printf("Dommage pour le client %d son groupe(%s) n'a pas eu de place %n", this.id, this.groupe);
+        } catch ( InterruptedException e ) {
+            e.printStackTrace();
         }
-
 
     }
 
-    public void setInterruptedStatus() {
+    void setInterruptedStatus() {
+
         this.interruptedStatus = true;
+
     }
 }

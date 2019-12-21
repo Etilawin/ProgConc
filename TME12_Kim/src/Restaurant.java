@@ -1,23 +1,19 @@
 import java.util.HashMap;
 
-public class Restaurant {
+class Restaurant {
 
     private int nb_tables_dispo;
-    private HashMap<GroupeClients, NumeroReservation> reservations;
 
-    public Restaurant(int nb_tables) {
+    Restaurant(int nb_tables) {
 
         this.nb_tables_dispo = nb_tables;
-        this.reservations = new HashMap<>();
 
     }
 
-    public synchronized NumeroReservation reserver(GroupeClients groupe) {
+    synchronized NumeroReservation reserver(GroupeClients groupe) {
 
-        if (this.reservations.containsKey(groupe)) {
-
-            return this.reservations.get(groupe);
-
+        if (groupe.getReservation() != null) {
+            return groupe.getReservation();
         }
 
         // Each table has 2 sit
@@ -25,13 +21,15 @@ public class Restaurant {
 
         if (nb_tables_necessaires <= this.nb_tables_dispo) {
 
+            System.out.printf("Nouvelle réservation pour le groupe %s.%n", groupe);
             NumeroReservation res = new NumeroReservation();
-            this.reservations.put(groupe, res);
             this.nb_tables_dispo -= nb_tables_necessaires;
+            groupe.setReservation(res);
             return res;
 
         }
 
+        groupe.propagateInterruptedStatus();
         return null;
 
     }
