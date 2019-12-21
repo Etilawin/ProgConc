@@ -1,6 +1,7 @@
 import barbier.*;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 
@@ -9,7 +10,6 @@ public class MainTest {
     public static void main(String[] args) {
         try {
             Random r = new Random();
-            String fichierComplet = (new BufferedReader(new FileReader(new File("./data/prenoms.json")))).readLine();
 
             int nbClients = 10 + r.nextInt(100);
             Client[] clients = new Client[nbClients];
